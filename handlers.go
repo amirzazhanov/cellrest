@@ -18,7 +18,8 @@ func CellIndex(w http.ResponseWriter, r *http.Request) {
 		Cell{Radio: "UMTS"},
 		Cell{Radio: "GSM"},
 	}
-
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	w.WriteHeader(http.StatusOK)
 	if err := json.NewEncoder(w).Encode(cells); err != nil {
 		panic(err)
 	}
@@ -27,6 +28,6 @@ func CellIndex(w http.ResponseWriter, r *http.Request) {
 //CellShow - show specific cell
 func CellShow(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	cellID := vars["cellId"]
+	cellID := vars["cellID"]
 	fmt.Fprintln(w, "Cell show:", cellID)
 }
