@@ -31,7 +31,13 @@ var routes = Routes{
 	Route{
 		"CellShow",
 		"GET",
-		"/cells/{CellID}",
+		"/cells/{CellType}",
 		CellShow,
 	},
+	//	Route{
+	//		"CellByType",
+	//		"GET",
+	//		"/cellstype/{CellType}",
+	//		CellByType(session),
+	//	},
 }

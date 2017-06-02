@@ -4,6 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
+	"gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2/bson"
+	"log"
 	"net/http"
 )
 
@@ -28,6 +31,37 @@ func CellIndex(w http.ResponseWriter, r *http.Request) {
 //CellShow - show specific cell
 func CellShow(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	cellID := vars["cellID"]
-	fmt.Fprintln(w, "Cell show:", cellID)
+	cellType := vars["cellType"]
+	fmt.Fprintln(w, "Cell show:", cellType)
+}
+
+func CellByType(s *mgo.Session) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		session := s.Copy()
+		defer session.Close()
+		vars := mux.Vars(r)
+		cellType := vars["cellType"]
+		log.Println("CellType: ", cellType)
+		c := session.DB("cells").C("cells")
+
+		var cell Cell
+		err := c.Find(bson.M{"radio": cellType}).One(&cell)
+		if err != nil {
+			ErrorWithJSON(w, "Database error", http.StatusInternalServerError)
+			log.Println("Failed find cell: ", err)
+			return
+		}
+
+		if cell.Radio == "" {
+			ErrorWithJSON(w, "CellType not found", http.StatusNotFound)
+			return
+		}
+
+		respBody, err := json.MarshalIndent(cell, "", "  ")
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		ResponseWithJSON(w, respBody, http.StatusOK)
+	}
 }
