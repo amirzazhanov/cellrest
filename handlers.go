@@ -8,6 +8,7 @@ import (
 	"gopkg.in/mgo.v2/bson"
 	"log"
 	"net/http"
+	"strconv"
 )
 
 // Index function
@@ -44,20 +45,56 @@ func CellByType(s *mgo.Session) func(w http.ResponseWriter, r *http.Request) {
 		log.Println("CellType: ", cellType)
 		c := session.DB("cells").C("cells")
 
-		var cell Cell
-		err := c.Find(bson.M{"radio": cellType}).One(&cell)
+		var cells []Cell
+		err := c.Find(bson.M{"radio": cellType}).All(&cells)
 		if err != nil {
 			ErrorWithJSON(w, "Database error", http.StatusInternalServerError)
 			log.Println("Failed find cell: ", err)
 			return
 		}
-
-		if cell.Radio == "" {
-			ErrorWithJSON(w, "CellType not found", http.StatusNotFound)
-			return
+		for _, everycell := range cells {
+			if everycell.Radio == "" {
+				ErrorWithJSON(w, "CellType not found", http.StatusNotFound)
+				return
+			}
 		}
 
-		respBody, err := json.MarshalIndent(cell, "", "  ")
+		respBody, err := json.MarshalIndent(cells, "", "  ")
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		ResponseWithJSON(w, respBody, http.StatusOK)
+	}
+}
+func CellByID(s *mgo.Session) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		session := s.Copy()
+		defer session.Close()
+		vars := mux.Vars(r)
+		cellMCC, _ := strconv.ParseUint(vars["cellMCC"], 10, 32)
+		cellNet, _ := strconv.ParseUint(vars["cellNet"], 10, 32)
+		cellArea, _ := strconv.ParseUint(vars["cellArea"], 10, 32)
+		cellID, _ := strconv.ParseUint(vars["cellID"], 10, 32)
+
+		log.Println("CellMCC: ", cellMCC, "CellNet: ", cellNet, "CellArea: ", cellArea, "CellID: ", cellID)
+		c := session.DB("cells").C("cells")
+
+		var cells []Cell
+		err := c.Find(bson.M{"mcc": cellMCC, "net": cellNet, "area": cellArea, "cell": cellID}).All(&cells)
+		if err != nil {
+			ErrorWithJSON(w, "Database error", http.StatusInternalServerError)
+			log.Println("Failed find cell: ", err)
+			return
+		}
+		for _, everycell := range cells {
+			if everycell.MCC != uint32(cellMCC) {
+				ErrorWithJSON(w, "Cell not found", http.StatusNotFound)
+				return
+			}
+		}
+
+		respBody, err := json.MarshalIndent(cells, "", "  ")
 		if err != nil {
 			log.Fatal(err)
 		}

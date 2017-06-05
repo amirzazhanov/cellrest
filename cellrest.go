@@ -22,7 +22,14 @@ func main() {
 		"GET",
 		"/cellstype/{cellType}",
 		CellByType(session),
-	})
+	},
+		Route{
+			"CellByID",
+			"GET",
+			"/cells/{cellMCC}/{cellNet}/{cellArea}/{cellID}",
+			CellByID(session),
+		},
+	)
 	r := NewRouter()
 
 	log.Fatal(http.ListenAndServe("localhost:8080", r))
