@@ -7,6 +7,7 @@ import (
 	"github.com/BurntSushi/toml"
 	"log"
 	"net/http"
+	"time"
 )
 
 type tomlConfig struct {
@@ -20,12 +21,22 @@ type tomlConfig struct {
 var config tomlConfig
 
 func main() {
-	if _, err := toml.DecodeFile("cellrest_config.toml", &config); err != nil {
+	var session *mgo.Session
+	var err error
+	if _, err = toml.DecodeFile("cellrest_config.toml", &config); err != nil {
 		log.Print("[CRITICAL] ", "Problem parsing configuration file", err)
 	}
-	session, err := mgo.Dial(config.MongoHostname)
-	if err != nil {
-		panic(err)
+	for {
+		session, err = mgo.Dial(config.MongoHostname)
+		if err != nil {
+			log.Println("[CRITICAL] ", "Problem conecting database", err)
+
+			log.Println("[CRITICAL] ", "Sleep 10 seconds", err)
+			time.Sleep(10 * time.Second)
+			continue
+		} else {
+			break
+		}
 	}
 	defer session.Close()
 
