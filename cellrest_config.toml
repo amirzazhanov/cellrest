@@ -1,0 +1,5 @@
+hostname = "localhost"
+port = "8080"
+mongo_hostname = "192.168.137.2"
+mongo_database = "cells"
+mongo_collection = "cells"

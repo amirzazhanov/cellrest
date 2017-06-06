@@ -4,12 +4,26 @@ import (
 	"gopkg.in/mgo.v2"
 	//	"gopkg.in/mgo.v2/bson"
 	"fmt"
+	"github.com/BurntSushi/toml"
 	"log"
 	"net/http"
 )
 
+type tomlConfig struct {
+	BindHostname    string `toml:"hostname"`
+	Port            string `toml:"port"`
+	MongoHostname   string `toml:"mongo_hostname"`
+	MongoDatabase   string `toml:"mongo_database"`
+	MongoCollection string `toml:"mongo_collection"`
+}
+
+var config tomlConfig
+
 func main() {
-	session, err := mgo.Dial("192.168.10.2")
+	if _, err := toml.DecodeFile("cellrest_config.toml", &config); err != nil {
+		log.Print("[CRITICAL] ", "Problem parsing configuration file", err)
+	}
+	session, err := mgo.Dial(config.MongoHostname)
 	if err != nil {
 		panic(err)
 	}
@@ -17,29 +31,20 @@ func main() {
 
 	session.SetMode(mgo.Monotonic, true)
 	ensureIndex(session)
-	routes = append(routes, Route{
-		"CellByType",
-		"GET",
-		"/cellstype/{cellType}",
-		CellByType(session),
-	},
-		Route{
-			"CellByID",
-			"GET",
-			"/cells/{cellMCC}/{cellNet}/{cellArea}/{cellID}",
-			CellByID(session),
-		},
+	routes = append(routes,
+		Route{"CellByType", "GET", "/cellstype/{cellType}", CellByType(session)},
+		Route{"CellByID", "GET", "/cells/{cellMCC}/{cellNet}/{cellArea}/{cellID}", CellByID(session)},
 	)
 	r := NewRouter()
 
-	log.Fatal(http.ListenAndServe("localhost:8080", r))
+	log.Fatal(http.ListenAndServe(config.BindHostname+":"+config.Port, r))
 }
 
 func ensureIndex(s *mgo.Session) {
 	session := s.Copy()
 	defer session.Close()
 
-	c := session.DB("cells").C("cells")
+	c := session.DB(config.MongoDatabase).C(config.MongoCollection)
 
 	index := mgo.Index{
 		Key: []string{"mcc"},
