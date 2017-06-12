@@ -55,19 +55,20 @@ func ensureIndex(s *mgo.Session) {
 	session := s.Copy()
 	defer session.Close()
 
-	c := session.DB(config.MongoDatabase).C(config.MongoCollection)
-
-	index := mgo.Index{
-		Key: []string{"mcc"},
-		//		Unique:     true,
-		//		DropDups:   true,
-		Background: true,
-		Sparse:     true,
-	}
-	err := c.EnsureIndex(index)
-	if err != nil {
-		panic(err)
-	}
+	//	c := session.DB(config.MongoDatabase).C(config.MongoCollection)
+	/*
+		index := mgo.Index{
+			Key: []string{"mcc"},
+			//		Unique:     true,
+			//		DropDups:   true,
+			Background: true,
+			Sparse:     true,
+		}
+		err := c.EnsureIndex(index)
+		if err != nil {
+			panic(err)
+		}
+	*/
 }
 func ErrorWithJSON(w http.ResponseWriter, message string, code int) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")

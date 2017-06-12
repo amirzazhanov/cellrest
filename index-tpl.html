@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+</html>
+<head>
+  <title>{{.Title}}</title>
+</head>
+<body>
+  {{printf "%s" .Body}}
+<div id="id01"></div>
+
+<script>
+var xmlhttp = new XMLHttpRequest();
+var url = "http://localhost:8080/cells/262/2/801/642";
+
+xmlhttp.onreadystatechange = function() {
+    if (this.readyState == 4 && this.status == 200) {
+        var myCellArr = JSON.parse(this.responseText);
+        myFunction(myCellArr);
+    }
+};
+xmlhttp.open("GET", url, true);
+xmlhttp.send();
+
+function myFunction(arr) {
+    var out = "";
+    var i;
+    for(i = 0; i < arr.length; i++) {
+        out += 'Radio: ' + arr[i].radio + '<br>' +
+        'MCC: ' + arr[i].mcc + '<br>'+
+		    'NET: ' + arr[i].net + '<br>'+
+        'Created: ' + timeConverter(arr[i].created) + '<br>'+
+        'Updated: ' + timeConverter(arr[i].updated) + '<br>';
+    }
+    document.getElementById("id01").innerHTML = out;
+}
+
+
+function timeConverter(UNIX_timestamp){
+  var a = new Date(UNIX_timestamp * 1000);
+  var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var year = a.getFullYear();
+  var month = months[a.getMonth()];
+  var date = a.getDate();
+  var hour = a.getHours();
+  var min = a.getMinutes();
+  var sec = a.getSeconds();
+  var time = date + ' ' + month + ' ' + year + ' ' + hour + ':' + min + ':' + sec ;
+  return time;
+}
+
+</script>
+</body>
+</html>

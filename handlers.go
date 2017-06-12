@@ -6,14 +6,23 @@ import (
 	"github.com/gorilla/mux"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
+	"html/template"
 	"log"
 	"net/http"
 	"strconv"
 )
 
+// Page structure simple
+type Page struct {
+	Title string
+	Body  []byte
+}
+
 // Index function
 func Index(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, "Welcome!")
+	pTmp := &Page{Title: "TestPage", Body: []byte("This is a sample simple Page.")}
+	t, _ := template.ParseFiles("index-tpl.html")
+	t.Execute(w, pTmp)
 }
 
 // CellIndex - list all cells
